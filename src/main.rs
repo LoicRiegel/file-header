@@ -2,7 +2,6 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 use clap::Parser;
-use file_header;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

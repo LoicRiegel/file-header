@@ -25,7 +25,7 @@ pub fn update_header(file: &mut File, current_header: &str, new_header: &str) ->
     // Add new header
     content.push_str(new_header);
 
-    file.write(content.as_bytes()).expect("Failed to write to a file");
+    file.write_all(content.as_bytes()).expect("Failed to write to a file");
     Ok(())
 }
 
