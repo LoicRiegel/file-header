@@ -1,2 +1,3 @@
 # file-header
- Add header and footer comments to files
+
+Add header and footer comments to files.
