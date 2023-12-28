@@ -1,7 +1,7 @@
+use clap::Parser;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -19,11 +19,12 @@ struct Args {
 
 fn main() -> io::Result<()> {
     let args = Args::parse();
-    
+
     let error_msg = format!("Failed to read {:?}", args.dir);
     let mut dir_entries = fs::read_dir(args.dir).expect(&error_msg);
 
-    let files_to_update = file_header::select_files_matching_pattern(&mut dir_entries, &args.pattern);
+    let files_to_update =
+        file_header::select_files_matching_pattern(&mut dir_entries, &args.pattern);
     for file in files_to_update {
         dbg!(file);
     }
