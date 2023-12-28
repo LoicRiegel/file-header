@@ -1,4 +1,5 @@
 use std::fs;
+use std::io;
 use std::path::Path;
 use clap::Parser;
 
@@ -13,21 +14,20 @@ struct Args {
 }
 
 
-fn main() {
+fn main() -> io::Result<()> {
     let args = Args::parse();
 
     let path= Path::new(&args.dir);
-    match fs::read_dir(path) {
-        Err(_) => println!("error"),
-        Ok(entries) => entries.
-            flatten().
-            filter(|file| file.file_name().to_string_lossy().contains(".py"))
-            .for_each(|file| { 
-                let content = fs::read_to_string(file.path());
-                if let Ok(content) = content {
-                    println!("{:?}", content);
-                }
+    let entries = fs::read_dir(path)?;
+    entries.flatten().
+        filter(|file| file.file_name().to_string_lossy().contains(".py"))
+        .for_each(|file| { 
+            let content = fs::read_to_string(file.path());
+            if let Ok(content) = content {
+                println!("{:?}", content);
             }
-            ),
-    }
+        }
+    );
+
+    Ok(())
 }
