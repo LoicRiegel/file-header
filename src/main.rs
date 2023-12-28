@@ -18,15 +18,13 @@ struct Args {
     blank_lines: usize,
 }
 
-
 fn main() -> io::Result<()> {
     let args = Args::parse();
-
+    
     let error_msg = format!("Failed to read {:?}", args.dir);
-    let dir_entries = fs::read_dir(args.dir).expect(&error_msg);
+    let mut dir_entries = fs::read_dir(args.dir).expect(&error_msg);
 
-
-    let files_to_update = file_header::select_files_matching_pattern(dir_entries, &args.pattern);
+    let files_to_update = file_header::select_files_matching_pattern(&mut dir_entries, &args.pattern);
     for file in files_to_update {
         dbg!(file);
     }

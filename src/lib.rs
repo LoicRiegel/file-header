@@ -3,8 +3,8 @@ use std::fs::ReadDir;
 use std::fs::{DirEntry, File};
 use std::iter::Iterator;
 
-pub fn select_files_matching_pattern(dir_entries: ReadDir, _: &str) -> impl Iterator<Item = Result<DirEntry>> {
-    dir_entries.filter(|entry| entry.is_ok())
+pub fn select_files_matching_pattern<'a>(dir_entries: &'a mut ReadDir, pattern: &'a str) -> impl Iterator<Item = Result<DirEntry>> + 'a {
+    dir_entries.filter(move |entry| entry.as_ref().is_ok_and(|entry| entry.path().is_file() && entry.file_name().to_string_lossy().contains(pattern)))
 }
 
 
