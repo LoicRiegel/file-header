@@ -1,10 +1,22 @@
 use std::fs;
 use std::path::Path;
+use clap::Parser;
 
-const CURRENT_DIR: &str = "./tmp/testdir";
+
+/// Add a header to selected files
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Directory
+    #[arg(short, long)]
+    dir: String,
+}
+
 
 fn main() {
-    let path= Path::new(CURRENT_DIR);
+    let args = Args::parse();
+
+    let path= Path::new(&args.dir);
     match fs::read_dir(path) {
         Err(_) => println!("error"),
         Ok(entries) => entries.
