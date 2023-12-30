@@ -1,4 +1,5 @@
 use clap::Parser;
+use file_header::Header;
 use std::fs;
 use std::path::PathBuf;
 
@@ -23,12 +24,17 @@ struct Args {
 fn main() -> Result<(), ()> {
     let mut exit_code: Result<(), ()> = Ok(());
     let args = Args::parse();
-    let current_header_content = match args.current_header {
-        Some(pathbuf) => fs::read_to_string(pathbuf).expect("Could not read header file"),
-        None => String::new(),
+    let current_header = match args.current_header {
+        Some(pathbuf) => {
+            let current_header_content =
+                fs::read_to_string(pathbuf).expect("Could not read header file");
+            Header::new(&current_header_content)
+        }
+        None => Header::new(""),
     };
     let new_header_content =
         fs::read_to_string(args.new_header).expect("Could not read header file");
+    let new_header = Header::new(&new_header_content);
 
     let error_msg = format!("Failed to read {:?}", args.dir);
     let mut dir_entries = fs::read_dir(args.dir).expect(&error_msg);
@@ -38,8 +44,8 @@ fn main() -> Result<(), ()> {
     for file_entry in files_to_update.filter_map(|result| result.ok()) {
         if let Err(err) = file_header::update_header(
             &file_entry.path(),
-            &current_header_content,
-            &new_header_content,
+            &current_header,
+            &new_header,
             args.blank_lines,
         ) {
             eprintln!("Could not update file {:?} {}", file_entry.file_name(), err);

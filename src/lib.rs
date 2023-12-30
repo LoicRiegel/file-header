@@ -1,8 +1,29 @@
 use std::fs::{DirEntry, OpenOptions, ReadDir};
 use std::io::{Read, Result, Write};
 use std::iter::Iterator;
+use std::ops::Deref;
 use std::path::PathBuf;
 
+pub struct Header(String);
+
+impl Header {
+    pub fn new(string: &str) -> Self {
+        Self(
+            string
+                .trim_start_matches('\n')
+                .trim_end_matches('\n')
+                .to_string(),
+        )
+    }
+}
+
+impl Deref for Header {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 /// Return an iterator containing only files matching the pattern
 pub fn select_files_matching_pattern<'a>(
@@ -20,20 +41,10 @@ pub fn select_files_matching_pattern<'a>(
 /// Update the header of a file
 pub fn update_header(
     file_path: &PathBuf,
-    current_header: &str,
-    new_header: &str,
+    current_header: &Header,
+    new_header: &Header,
     blank_lines_after_header: usize,
 ) -> Result<()> {
-    // Trim blank lines
-    let current_header = current_header
-        .trim_start_matches('\n')
-        .trim_end_matches('\n')
-        .to_string();
-    let new_header = new_header
-        .trim_start_matches('\n')
-        .trim_end_matches('\n')
-        .to_string();
-
     // Read original content
     let mut file = OpenOptions::new()
         .read(true)
@@ -45,16 +56,18 @@ pub fn update_header(
     content = content.trim_start_matches('\n').to_string();
 
     // Return early if nothing should be done
-    if content.starts_with(&new_header) {
+    if content.starts_with(&new_header.0) {
         return Ok(());
     }
 
     // Remove current header
-    content.remove_header(&current_header);
+    if let Some(content_without_prefix) = content.strip_prefix(&current_header.0) {
+        content = content_without_prefix.to_string();
+    }
 
     // Add new header
     content.insert_str(0, &"\n".repeat(blank_lines_after_header + 1));
-    content.insert_str(0, &new_header);
+    content.insert_str(0, new_header);
 
     let mut file = OpenOptions::new()
         .read(true)
@@ -66,20 +79,4 @@ pub fn update_header(
     drop(file);
 
     Ok(())
-}
-
-
-trait Header {
-    /// Remove the header
-    fn remove_header(&mut self, header: &str);
-}
-
-impl Header for String {
-    fn remove_header(&mut self, header: &str) {
-        if header.is_empty() || !self.starts_with(header) {
-            return;
-        }
-        println!("draining");
-        self.drain(header.len()..);
-    }
 }
