@@ -62,7 +62,7 @@ pub fn update_header(
 
     // Remove current header
     if let Some(content_without_prefix) = content.strip_prefix(&current_header.0) {
-        content = content_without_prefix.to_string();
+        content = content_without_prefix.trim_start_matches("\n").to_string();
     }
 
     // Add new header
