@@ -26,6 +26,7 @@ impl Deref for Header {
 }
 
 /// Return an iterator containing only files matching the pattern
+/// TODO: use unix-shell pattern matching
 pub fn select_files_matching_pattern<'a>(
     dir_entries: &'a mut ReadDir,
     pattern: &'a str,
@@ -36,6 +37,30 @@ pub fn select_files_matching_pattern<'a>(
         }
         Err(_) => true,
     })
+}
+
+/// Update the header of a file
+pub fn update_header_in_content(
+    original_content: &str,
+    current_header: &Header,
+    new_header: &Header,
+    blank_lines_after_header: usize,
+) -> String {
+    // Trip blank blank at the start
+    let mut content = original_content.trim_start_matches('\n').to_string();
+
+    // Remove current header
+    dbg!(&content);
+    dbg!(&current_header.0);
+    if let Some(content_without_prefix) = content.strip_prefix(&current_header.0) {
+        content = content_without_prefix.trim_start_matches('\n').to_string();
+    }
+
+    // Add new header
+    content.insert_str(0, &"\n".repeat(blank_lines_after_header + 1));
+    content.insert_str(0, new_header);
+
+    content
 }
 
 /// Update the header of a file
@@ -50,24 +75,16 @@ pub fn update_header(
         .read(true)
         .open(file_path)
         .expect("Error when opening file to read");
-    let mut content = String::new();
-    file.read_to_string(&mut content)?;
+    let mut original_content = String::new();
+    file.read_to_string(&mut original_content)?;
     drop(file);
-    content = content.trim_start_matches('\n').to_string();
 
-    // Return early if nothing should be done
-    if content.starts_with(&new_header.0) {
-        return Ok(());
-    }
-
-    // Remove current header
-    if let Some(content_without_prefix) = content.strip_prefix(&current_header.0) {
-        content = content_without_prefix.trim_start_matches("\n").to_string();
-    }
-
-    // Add new header
-    content.insert_str(0, &"\n".repeat(blank_lines_after_header + 1));
-    content.insert_str(0, new_header);
+    let updated_content = update_header_in_content(
+        &original_content,
+        current_header,
+        new_header,
+        blank_lines_after_header,
+    );
 
     let mut file = OpenOptions::new()
         .read(true)
@@ -75,7 +92,7 @@ pub fn update_header(
         .write(true)
         .open(file_path)
         .expect("Error when opening file to write");
-    file.write_all(content.as_bytes())?;
+    file.write_all(updated_content.as_bytes())?;
     drop(file);
 
     Ok(())
