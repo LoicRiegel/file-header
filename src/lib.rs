@@ -3,6 +3,7 @@ use std::io::{Read, Result, Write};
 use std::iter::Iterator;
 use std::path::PathBuf;
 
+
 /// Return an iterator containing only files matching the pattern
 pub fn select_files_matching_pattern<'a>(
     dir_entries: &'a mut ReadDir,
@@ -49,7 +50,7 @@ pub fn update_header(
     }
 
     // Remove current header
-    remove_header_in_place(&mut content, &current_header);
+    content.remove_header(&current_header);
 
     // Add new header
     content.insert_str(0, &"\n".repeat(blank_lines_after_header + 1));
@@ -67,11 +68,18 @@ pub fn update_header(
     Ok(())
 }
 
-/// Remove a preffix from a String in place
-fn remove_header_in_place(string: &mut String, header: &str) {
-    if header.is_empty() || !string.starts_with(header) {
-        return;
+
+trait Header {
+    /// Remove the header
+    fn remove_header(&mut self, header: &str);
+}
+
+impl Header for String {
+    fn remove_header(&mut self, header: &str) {
+        if header.is_empty() || !self.starts_with(header) {
+            return;
+        }
+        println!("draining");
+        self.drain(header.len()..);
     }
-    println!("draining");
-    string.drain(header.len()..);
 }
