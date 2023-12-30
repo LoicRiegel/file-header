@@ -49,7 +49,7 @@ pub fn update_header(
     }
 
     // Remove current header
-    remove_prefix_in_place(&mut content, &current_header);
+    remove_header_in_place(&mut content, &current_header);
 
     // Add new header
     content.insert_str(0, &"\n".repeat(blank_lines_after_header + 1));
@@ -68,10 +68,10 @@ pub fn update_header(
 }
 
 /// Remove a preffix from a String in place
-fn remove_prefix_in_place(input: &mut String, prefix: &str) {
-    if prefix.is_empty() || !input.starts_with(prefix) {
+fn remove_header_in_place(string: &mut String, header: &str) {
+    if header.is_empty() || !string.starts_with(header) {
         return;
     }
     println!("draining");
-    input.drain(prefix.len()..);
+    string.drain(header.len()..);
 }
