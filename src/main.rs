@@ -27,7 +27,8 @@ fn main() -> Result<(), ()> {
         Some(pathbuf) => fs::read_to_string(pathbuf).expect("Could not read header file"),
         None => String::new(),
     };
-    let new_header_content = fs::read_to_string(args.new_header).expect("Could not read header file");
+    let new_header_content =
+        fs::read_to_string(args.new_header).expect("Could not read header file");
 
     let error_msg = format!("Failed to read {:?}", args.dir);
     let mut dir_entries = fs::read_dir(args.dir).expect(&error_msg);
@@ -35,10 +36,16 @@ fn main() -> Result<(), ()> {
     let files_to_update =
         file_header::select_files_matching_pattern(&mut dir_entries, &args.pattern);
     for file_entry in files_to_update.filter_map(|result| result.ok()) {
-        if let Err(err) = file_header::update_header(&file_entry.path(), &current_header_content, &new_header_content) {
+        if let Err(err) = file_header::update_header(
+            &file_entry.path(),
+            &current_header_content,
+            &new_header_content,
+            args.blank_lines,
+        ) {
             eprintln!("Could not update file {:?} {}", file_entry.file_name(), err);
             exit_code = Err(());
         }
     }
-    return exit_code
+
+    exit_code
 }
