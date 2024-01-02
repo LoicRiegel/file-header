@@ -50,8 +50,6 @@ fn update_header_in_content(
     let mut content = original_content.trim_start_matches('\n').to_string();
 
     // Remove current header
-    dbg!(&content);
-    dbg!(&current_header.0);
     if let Some(content_without_prefix) = content.strip_prefix(&current_header.0) {
         content = content_without_prefix.trim_start_matches('\n').to_string();
     }
