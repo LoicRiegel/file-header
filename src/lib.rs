@@ -40,7 +40,7 @@ pub fn select_files_matching_pattern<'a>(
 }
 
 /// Update the header of a file
-pub fn update_header_in_content(
+fn update_header_in_content(
     original_content: &str,
     current_header: &Header,
     new_header: &Header,
@@ -96,4 +96,116 @@ pub fn update_header(
     drop(file);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_update_header_in_content() {
+        let original_content = "Code";
+        let current_header = Header::new("");
+        let new_header = Header::new("HEADER");
+        let blank_lines_after_header: usize = 1;
+
+        let expected = String::from("HEADER\n\nCode");
+        let result = update_header_in_content(original_content, &current_header, &new_header, blank_lines_after_header);
+        
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_update_header_in_content_zero_blank_lines() {
+        let original_content = "Code";
+        let current_header = Header::new("");
+        let new_header = Header::new("HEADER");
+        let blank_lines_after_header: usize = 0;
+
+        let expected = String::from("HEADER\nCode");
+        let result = update_header_in_content(original_content, &current_header, &new_header, blank_lines_after_header);
+        
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_update_header_with_current_header() {
+        let original_content = "HEADER\nCode";
+        let current_header = Header::new("HEADER");
+        let new_header = Header::new("NEW HEADER");
+        let blank_lines_after_header: usize = 1;
+
+        let expected = String::from("NEW HEADER\n\nCode");
+        let result = update_header_in_content(original_content, &current_header, &new_header, blank_lines_after_header);
+        
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_update_header_with_current_header_zero_blank_lines() {
+        let original_content = "HEADER\nCode";
+        let current_header = Header::new("HEADER");
+        let new_header = Header::new("NEW HEADER");
+        let blank_lines_after_header: usize = 0;
+
+        let expected = String::from("NEW HEADER\nCode");
+        let result = update_header_in_content(original_content, &current_header, &new_header, blank_lines_after_header);
+        
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_update_header_multi_lines() {
+        let original_content = "---
+HEADER
+---
+
+Code";
+        let current_header = Header::new("---
+HEADER
+---");
+        let new_header = Header::new("---
+NEW HEADER
+---");
+        let blank_lines_after_header: usize = 1;
+
+        let expected = String::from("---
+NEW HEADER
+---
+
+Code");
+        let result = update_header_in_content(original_content, &current_header, &new_header, blank_lines_after_header);
+        
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_update_header_multi_lines_blank_lines_in_headers() {
+        let original_content = "---
+HEADER
+---
+
+Code";
+        let current_header = Header::new("---
+HEADER
+---
+
+
+");
+        let new_header = Header::new("---
+NEW HEADER
+---
+
+");
+        let blank_lines_after_header: usize = 1;
+
+        let expected = String::from("---
+NEW HEADER
+---
+
+Code");
+        let result = update_header_in_content(original_content, &current_header, &new_header, blank_lines_after_header);
+        
+        assert_eq!(result, expected);
+    }
 }
